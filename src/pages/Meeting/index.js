@@ -643,6 +643,18 @@ export default function Meeting() {
     setListRoom((pre) => [meetingID, ...pre]);
   };
 
+  const handleInvitingUserOutRoom = (connId, meetingId, sub) => {
+    socket &&
+      socket.emit("InvitingUserOutRoom", {
+        connId,
+        meetingId,
+        sub,
+      });
+    setUsers((pre) => {
+      return pre.filter((u) => u.sub !== sub);
+    });
+  };
+
   useEffect(() => {
     const getUser = async (info) => {
       const res = await axios.post(BASE_URI + "get-info-meeting", {
@@ -947,6 +959,12 @@ export default function Meeting() {
         setListRoom((pre) => [data, ...pre]);
       });
   }, [socket]);
+
+  useEffect(() => {
+    socket && socket.on("informInvitingUserOutRoom",()=>{
+      handleLeaveMeeting();
+    })
+  },[socket])
   return (
     <>
       <ModalAddRoom
@@ -1148,6 +1166,9 @@ export default function Meeting() {
                                   handleChangeUserChatPer={
                                     handleChangeUserChatPer
                                   }
+                                  handleInvitingUserOutRoom={
+                                    handleInvitingUserOutRoom
+                                  }
                                 />
                               </div>
                             )}
@@ -1157,7 +1178,10 @@ export default function Meeting() {
                     </div>
                   ) : (
                     <div className="chat-show-wrap text-gray-800 text-sm flex flex-col justify-between h-full">
-                      <div className="chat-message-show space-y-2" id="messages">
+                      <div
+                        className="chat-message-show space-y-2"
+                        id="messages"
+                      >
                         {messages.map((m) => {
                           return (
                             <React.Fragment key={m.time}>
